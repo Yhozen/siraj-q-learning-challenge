@@ -6,12 +6,19 @@ master = Tk()
 
 parser = argparse.ArgumentParser()
 parser.add_argument('walls', nargs='?', action="store", type=int, default=5)
+parser.add_argument('size', nargs='?', action="store", type=int, default=7)
 args = parser.parse_args()
+
+number_of_walls = args.walls
+world_size = args.size
+
+Width = 100
+if world_size > 10: #to make it visible in a 1080p monitor
+    Width = Width/(world_size/10)
 triangle_size = 0.1
 cell_score_min = -0.2
 cell_score_max = 0.2
-Width = 100
-(x, y) = (7, 7)
+(x, y) = (world_size, world_size)
 actions = ["up", "down", "left", "right"]
 
 board = Canvas(master, width=x*Width, height=y*Width)
@@ -19,7 +26,7 @@ player = (0, y-1)
 score = 1
 restart = False
 walk_reward = -0.04
-number_of_walls = args.walls #set number of walls
+
 def make_walls(): #Random walls positions just to make it more... random
     walls = []
     while len(walls) < number_of_walls:
@@ -30,7 +37,7 @@ def make_walls(): #Random walls positions just to make it more... random
     return walls
 
 walls = make_walls()
-specials = [(4, 1, "red", -1), (4, 0, "green", 1)]
+specials = [((world_size-3), 1, "red", -1), ((world_size-3), 0, "green", 1)]
 cell_scores = {}
 walls_board = []
 
