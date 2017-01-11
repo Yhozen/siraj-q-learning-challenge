@@ -13,7 +13,7 @@ number_of_walls = args.walls
 world_size = args.size
 
 Width = 100
-if world_size > 10: #to make it visible in a 1080p monitor
+if world_size > 10: #make it visible in a 1080p monitor
     Width = Width/(world_size/10)
 triangle_size = 0.1
 cell_score_min = -0.2
@@ -39,7 +39,7 @@ def make_walls(): #Random walls positions just to make it more... random
 walls = make_walls()
 specials = [((world_size-3), 1, "red", -1), ((world_size-3), 0, "green", 1)]
 cell_scores = {}
-walls_board = []
+walls_board = [] #To store the  UI wall and then update it
 
 def create_triangle(i, j, action):
     if action == actions[0]:
@@ -101,7 +101,7 @@ def wall_move():
     random_axis = randint(0,1) # and a random direction
     moving_axis = walls[random_wall][random_axis]
     increment = choice([-1, 1]) #going up or down?
-    if (moving_axis + increment > x) or (moving_axis + increment < 0): #the movement is incorrect so move the other way
+    if (moving_axis + increment >= x) or (moving_axis + increment < 0): #the movement is incorrect so move the other way
         moving_axis -= increment
     else: #correct movement
         moving_axis += increment
@@ -109,17 +109,17 @@ def wall_move():
     if random_axis == 1: # moving axis is the y
         other_axis = walls[random_wall][0]
         new_wall = (other_axis, moving_axis)
-        board.coords(walls_board[random_wall], other_axis*Width, moving_axis*Width, (other_axis+1)*Width, (moving_axis+1)*Width)
+        board.coords(walls_board[random_wall], other_axis*Width, moving_axis*Width, (other_axis+1)*Width, (moving_axis+1)*Width) #Update UI wall
     else:  # moving axis is the x
         other_axis = walls[random_wall][1]
         new_wall = (moving_axis, other_axis)
-        board.coords(walls_board[random_wall], moving_axis*Width, other_axis*Width, (moving_axis+1)*Width, (other_axis+1)*Width)
-    walls[random_wall] = new_wall
+        board.coords(walls_board[random_wall], moving_axis*Width, other_axis*Width, (moving_axis+1)*Width, (other_axis+1)*Width) #Update UI wall
+    walls[random_wall] = new_wall #Update "real" walls
 
 
 def try_move(dx, dy):
     global player, x, y, score, walk_reward, me, restart, walls
-    wall_move()
+    wall_move() #first move the wall, then move the player
     if restart == True:
         restart_game()
     new_x = player[0] + dx
