@@ -1,12 +1,17 @@
 __author__ = 'philippe'
+import argparse
 from Tkinter import *
+from random import randint, choice
 master = Tk()
 
+parser = argparse.ArgumentParser()
+parser.add_argument('walls', nargs='?', action="store", type=int, default=5)
+args = parser.parse_args()
 triangle_size = 0.1
 cell_score_min = -0.2
 cell_score_max = 0.2
 Width = 100
-(x, y) = (5, 5)
+(x, y) = (7, 7)
 actions = ["up", "down", "left", "right"]
 
 board = Canvas(master, width=x*Width, height=y*Width)
@@ -14,11 +19,20 @@ player = (0, y-1)
 score = 1
 restart = False
 walk_reward = -0.04
+number_of_walls = args.walls #set number of walls
+def make_walls(): #Random walls positions just to make it more... random
+    walls = []
+    while len(walls) < number_of_walls:
+        x = randint(0, (number_of_walls-1))
+        y = randint(0, (number_of_walls-1))
+        wallCoord = (x,y)
+        walls.append(wallCoord)
+    return walls
 
-walls = [(1, 1), (1, 2), (2, 1), (2, 2)]
+walls = make_walls()
 specials = [(4, 1, "red", -1), (4, 0, "green", 1)]
 cell_scores = {}
-
+walls_board = []
 
 def create_triangle(i, j, action):
     if action == actions[0]:
@@ -55,7 +69,8 @@ def render_grid():
     for (i, j, c, w) in specials:
         board.create_rectangle(i*Width, j*Width, (i+1)*Width, (j+1)*Width, fill=c, width=1)
     for (i, j) in walls:
-        board.create_rectangle(i*Width, j*Width, (i+1)*Width, (j+1)*Width, fill="black", width=1)
+        render_wall = board.create_rectangle(i*Width, j*Width, (i+1)*Width, (j+1)*Width, fill="black", width=1)
+        walls_board.append(render_wall)
 
 render_grid()
 
@@ -73,9 +88,31 @@ def set_cell_score(state, action, val):
     color = "#" + red + green + "00"
     board.itemconfigure(triangle, fill=color)
 
+def wall_move():
+    global x, walls, walls_board
+    random_wall = randint(0,(number_of_walls-1)) #pick a random wall
+    random_axis = randint(0,1) # and a random direction
+    moving_axis = walls[random_wall][random_axis]
+    increment = choice([-1, 1]) #going up or down?
+    if (moving_axis + increment > x) or (moving_axis + increment < 0): #the movement is incorrect so move the other way
+        moving_axis -= increment
+    else: #correct movement
+        moving_axis += increment
+    new_wall = None
+    if random_axis == 1: # moving axis is the y
+        other_axis = walls[random_wall][0]
+        new_wall = (other_axis, moving_axis)
+        board.coords(walls_board[random_wall], other_axis*Width, moving_axis*Width, (other_axis+1)*Width, (moving_axis+1)*Width)
+    else:  # moving axis is the x
+        other_axis = walls[random_wall][1]
+        new_wall = (moving_axis, other_axis)
+        board.coords(walls_board[random_wall], moving_axis*Width, other_axis*Width, (moving_axis+1)*Width, (other_axis+1)*Width)
+    walls[random_wall] = new_wall
+
 
 def try_move(dx, dy):
-    global player, x, y, score, walk_reward, me, restart
+    global player, x, y, score, walk_reward, me, restart, walls
+    wall_move()
     if restart == True:
         restart_game()
     new_x = player[0] + dx
